@@ -10,6 +10,7 @@
 #include <string>
 #include "legion_domain.h"
 #include "serialtask.h"
+#include <omp.h> 
 
 using namespace Legion;
 using namespace std;
@@ -59,7 +60,9 @@ struct Argument
         int top_x4, top_y4;  // W
         int size;
         int threshold;
-        Argument(int _tx1, int _ty1, int _tx2, int _ty2, int _tx3, int _ty3, int _tx4, int _ty4, Color _partition, int _size, int _threshold){
+        int cilk_threshold;
+        int recursive_fanout;
+        Argument(int _tx1, int _ty1, int _tx2, int _ty2, int _tx3, int _ty3, int _tx4, int _ty4, Color _partition, int _size, int _threshold, int _cilk_threshold, int _recursive_fanout){
         top_x1 = _tx1; top_y1 = _ty1; 
         top_x2 = _tx2; top_y2 = _ty2; 
         top_x3 = _tx3; top_y3 = _ty3; 
@@ -67,6 +70,8 @@ struct Argument
         partition_color = _partition;
         size = _size;
         threshold = _threshold;
+        cilk_threshold = _cilk_threshold;
+        recursive_fanout = _recursive_fanout;
     }
 };
 
@@ -91,7 +96,7 @@ void top_level_task(const Task *task, const std::vector<PhysicalRegion> &regions
     Populate_launcher.add_region_requirement(RegionRequirement(lr1, WRITE_DISCARD, EXCLUSIVE, lr1));
     Populate_launcher.add_field(0, FID_X);
     runtime->execute_task(ctx, Populate_launcher);
-    Argument GEarg(0,0,0,0,0,0,0,0,partition_color1,size,4);
+    Argument GEarg(0,0,0,0,0,0,0,0,partition_color1,size,4,2,2);
     TaskLauncher T_launcher(A_LEGION_TASK_ID, TaskArgument(&GEarg,sizeof(Argument)));
     T_launcher.add_region_requirement(RegionRequirement(lr1, READ_WRITE, EXCLUSIVE, lr1));
     T_launcher.add_field(0, FID_X);
@@ -111,7 +116,7 @@ void a_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regi
     Rect<2> rect = runtime->get_index_space_domain(ctx,regions[0].get_logical_region().get_index_space());
     size_t strides[2];
     double *x_ptr = acc.ptr(rect,strides);
-    A_non_legion_task(x_ptr,strides[1],args.top_x4,args.top_x1,args.top_y1,size);
+    A_non_legion_task(x_ptr,strides[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
 }
 
 void b_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regions, Context ctx, HighLevelRuntime *runtime){
@@ -126,7 +131,7 @@ void b_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regi
     Rect<2> rect2 = runtime->get_index_space_domain(ctx,regions[1].get_logical_region().get_index_space());
     size_t strides2[2];
     double *x_ptr2 = acc.ptr(rect2,strides2);
-    B_non_legion_task(x_ptr,x_ptr2,strides[1],strides2[1],args.top_x4,args.top_x1,args.top_y1,size);
+    B_non_legion_task(x_ptr,x_ptr2,strides[1],strides2[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
 }
 
 void c_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regions, Context ctx, HighLevelRuntime *runtime){
@@ -141,7 +146,7 @@ void c_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regi
     Rect<2> rect2 = runtime->get_index_space_domain(ctx,regions[1].get_logical_region().get_index_space());
     size_t strides2[2];
     double *x_ptr2 = acc.ptr(rect2,strides2);
-    C_non_legion_task(x_ptr,x_ptr2,strides[1],strides2[1],args.top_x4,args.top_x1,args.top_y1,size);
+    C_non_legion_task(x_ptr,x_ptr2,strides[1],strides2[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
 }
 
 
@@ -165,7 +170,7 @@ void d_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regi
     Rect<2> rect4 = runtime->get_index_space_domain(ctx,regions[3].get_logical_region().get_index_space());
     size_t strides4[2];
     double *x_ptr4 = acc.ptr(rect4,strides4);
-    D_non_legion_task(x_ptr,x_ptr2,x_ptr3,x_ptr4,strides[1],strides2[1],strides3[1],strides4[1],args.top_x4,args.top_x1,args.top_y1,size);
+    D_non_legion_task(x_ptr,x_ptr2,x_ptr3,x_ptr4,strides[1],strides2[1],strides3[1],strides4[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
 }
 
 
