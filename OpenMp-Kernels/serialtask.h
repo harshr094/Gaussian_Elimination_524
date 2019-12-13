@@ -54,7 +54,7 @@ void D_non_legion_task(double* input1, double* input2, double* input3, double* i
             for(int ii = 0; ii < recurisve_fan_out; ++ii) {
                 for(int jj = 0; jj < recurisve_fan_out; ++jj) {
                     #pragma omp task
-                    D_non_legion_task(input1, input2, input3, input4, stride1, stride2, stride3, stride4, l1+ii*tile_size, l2+jj*tile_size, l3+kk*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
+                    D_non_legion_task(input1, input2, input3, input4, stride1, stride2, stride3, stride4, l1+kk*tile_size, l2+ii*tile_size, l3+jj*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
                     // ge_recursive_parallel_kernelD(X, U, V, W, problem_size, tile_size,
                     //                                i_lb + ii * tile_size,
                     //                                j_lb + jj * tile_size,
@@ -100,7 +100,7 @@ void C_non_legion_task(double* input1, double* input2, int stride1, int stride2,
         for(int kk = 0; kk < recurisve_fan_out; ++kk) {
             for(int ii = 0; ii < recurisve_fan_out; ++ii) {
                 #pragma omp task
-                C_non_legion_task(input1, input2, stride1, stride2, l1+ii*tile_size, l2+kk*tile_size, l3+kk*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
+                C_non_legion_task(input1, input2, stride1, stride2, l1+kk*tile_size, l2+ii*tile_size, l3+kk*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
                 // ge_recursive_parallel_kernelC(X, V, problem_size,
                 //                               tile_size,
                 //                               i_lb + ii * tile_size,
@@ -112,7 +112,7 @@ void C_non_legion_task(double* input1, double* input2, int stride1, int stride2,
             for(int jj = kk+1; jj < recurisve_fan_out; ++jj) {
                 for(int ii = 0; ii < recurisve_fan_out; ++ii) {
                     // #pragma omp task
-                    D_non_legion_task(input1, input1, input2, input2, stride1, stride1, stride2, stride2, l1+ii*tile_size, l2+jj*tile_size, l3+kk*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
+                    D_non_legion_task(input1, input1, input2, input2, stride1, stride1, stride2, stride2, l1+kk*tile_size, l2+ii*tile_size, l3+jj*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
                     // ge_recursive_parallel_kernelD(X, X, V, V, problem_size, tile_size,
                     //                               i_lb + ii * tile_size,
                     //                               j_lb + jj * tile_size,
@@ -157,7 +157,7 @@ void B_non_legion_task(double* input1, double* input2, int stride1, int stride2,
         for(int kk = 0; kk < recurisve_fan_out; ++kk) {
             for(int jj = 0; jj < recurisve_fan_out; ++jj) {
                 #pragma omp task
-                B_non_legion_task(input1, input2, stride1, stride2, l1+kk*tile_size, l2+jj*tile_size, l3+kk*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
+                B_non_legion_task(input1, input2, stride1, stride2, l1+kk*tile_size, l2+kk*tile_size, l3+jj*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
                 // ge_recursive_parallel_kernelB(X, U, problem_size,
                 //                               tile_size,
                 //                               i_lb + kk * tile_size,
@@ -169,7 +169,7 @@ void B_non_legion_task(double* input1, double* input2, int stride1, int stride2,
             for(int ii = kk+1; ii < recurisve_fan_out; ++ii) {
                 for(int jj = 0; jj < recurisve_fan_out; ++jj) {
                     #pragma omp task
-                    D_non_legion_task(input1, input2, input1, input2, stride1, stride2, stride1, stride2, l1+ii*tile_size, l2+jj*tile_size, l3+kk*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
+                    D_non_legion_task(input1, input2, input1, input2, stride1, stride2, stride1, stride2, l1+kk*tile_size, l2+ii*tile_size, l3+jj*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
                     // ge_recursive_parallel_kernelD(X, U, X, U, problem_size, tile_size,
                     //                               i_lb + ii * tile_size,
                     //                               j_lb + jj * tile_size,
@@ -210,14 +210,14 @@ void A_non_legion_task(double* input, int stride, int l1, int l2, int l3, int si
             // Calling functions B and C
             for(int ii = kk+1; ii < recurisve_fan_out; ++ii) {
                 #pragma omp task
-                B_non_legion_task(input, input, stride, stride, l1+kk*tile_size, l2+ii*tile_size, l3+kk*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
+                B_non_legion_task(input, input, stride, stride, l1+kk*tile_size, l2+kk*tile_size, l3+ii*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
                 // ge_recursive_parallel_kernelB(X, X, problem_size, tile_size,
                 //                               i_lb + kk * tile_size,
                 //                               j_lb + ii * tile_size,
                 //                               k_lb + kk * tile_size,
                 //                               recurisve_fan_out, base_size);
                 #pragma omp task
-                C_non_legion_task(input, input, stride, stride, l1+ii*tile_size, l2+kk*tile_size, l3+kk*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
+                C_non_legion_task(input, input, stride, stride, l1+kk*tile_size, l2+ii*tile_size, l3+kk*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
                 // ge_recursive_parallel_kernelC(X, X, problem_size, tile_size,
                 //                               i_lb + ii * tile_size,
                 //                               j_lb + kk * tile_size,
@@ -229,7 +229,7 @@ void A_non_legion_task(double* input, int stride, int l1, int l2, int l3, int si
             for(int ii = kk+1; ii < recurisve_fan_out; ++ii) {
                 for(int jj = kk+1; jj < recurisve_fan_out; ++jj) {
                     #pragma omp task
-                    D_non_legion_task(input, input, input, input, stride, stride, stride, stride, l1+ii*tile_size, l2+jj*tile_size, l3+kk*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
+                    D_non_legion_task(input, input, input, input, stride, stride, stride, stride, l1+kk*tile_size, l2+ii*tile_size, l3+jj*tile_size, tile_size, cilk_threshold, recurisve_fan_out);
                     // ge_recursive_parallel_kernelD(X, X, X, X, problem_size,
                     //                               tile_size, i_lb + ii * tile_size,
                     //                               j_lb + jj * tile_size,
