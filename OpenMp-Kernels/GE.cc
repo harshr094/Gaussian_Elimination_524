@@ -116,7 +116,15 @@ void a_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regi
     Rect<2> rect = runtime->get_index_space_domain(ctx,regions[0].get_logical_region().get_index_space());
     size_t strides[2];
     double *x_ptr = acc.ptr(rect,strides);
-    A_non_legion_task(x_ptr,strides[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            #pragma omp task
+            A_non_legion_task(x_ptr,strides[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
+            //#pragma omp taskwait
+        }
+    }
 }
 
 void b_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regions, Context ctx, HighLevelRuntime *runtime){
@@ -131,7 +139,16 @@ void b_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regi
     Rect<2> rect2 = runtime->get_index_space_domain(ctx,regions[1].get_logical_region().get_index_space());
     size_t strides2[2];
     double *x_ptr2 = acc.ptr(rect2,strides2);
-    B_non_legion_task(x_ptr,x_ptr2,strides[1],strides2[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            #pragma omp task
+            B_non_legion_task(x_ptr,x_ptr2,strides[1],strides2[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
+            //#pragma omp taskwait
+        }
+    }
+
 }
 
 void c_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regions, Context ctx, HighLevelRuntime *runtime){
@@ -146,7 +163,15 @@ void c_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regi
     Rect<2> rect2 = runtime->get_index_space_domain(ctx,regions[1].get_logical_region().get_index_space());
     size_t strides2[2];
     double *x_ptr2 = acc.ptr(rect2,strides2);
-    C_non_legion_task(x_ptr,x_ptr2,strides[1],strides2[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            #pragma omp task
+            C_non_legion_task(x_ptr,x_ptr2,strides[1],strides2[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
+            //#pragma omp taskwait
+        }
+    }
 }
 
 
@@ -170,7 +195,15 @@ void d_non_legion_task(const Task *task, const std::vector<PhysicalRegion> &regi
     Rect<2> rect4 = runtime->get_index_space_domain(ctx,regions[3].get_logical_region().get_index_space());
     size_t strides4[2];
     double *x_ptr4 = acc.ptr(rect4,strides4);
-    D_non_legion_task(x_ptr,x_ptr2,x_ptr3,x_ptr4,strides[1],strides2[1],strides3[1],strides4[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            #pragma omp task
+            D_non_legion_task(x_ptr,x_ptr2,x_ptr3,x_ptr4,strides[1],strides2[1],strides3[1],strides4[1],args.top_x4,args.top_x1,args.top_y1,size,args.cilk_threshold,args.recursive_fanout);
+            //#pragma omp taskwait
+        }
+    }
 }
 
 
